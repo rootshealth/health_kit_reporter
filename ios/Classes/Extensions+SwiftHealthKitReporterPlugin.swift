@@ -7,6 +7,8 @@
 
 import Flutter
 import HealthKitReporter
+import HealthKit
+
 
 // MARK: - MethodCall
 extension SwiftHealthKitReporterPlugin {
@@ -102,7 +104,7 @@ extension SwiftHealthKitReporterPlugin {
                 result: result
             )
         case .workoutQuery:
-            guard let arguments = call.arguments as? [String: Double] else {
+            guard let arguments = call.arguments as? [String: Any] else {
                 throwNoArgumentsError(result: result)
                 return
             }
@@ -479,19 +481,36 @@ extension SwiftHealthKitReporterPlugin {
     }
     private func workoutQuery(
         reporter: HealthKitReporter,
-        arguments: [String: Double],
+        arguments: [String: Any],
         result: @escaping FlutterResult
     ) {
         guard
-            let startTimestamp = arguments["startTimestamp"],
-            let endTimestamp = arguments["endTimestamp"]
+            let startTimestamp = arguments["startTimestamp"].flatMap({ $0 as? Double }),
+            let endTimestamp = arguments["endTimestamp"].flatMap({ $0 as? Double })
         else {
             throwParsingArgumentsError(result: result, arguments: arguments)
             return
         }
+        var mutOptions : HKQueryOptions = [.strictStartDate, .strictEndDate]
+        let argOptions  = arguments["options"].flatMap({ $0 as? [String] })
+        if(argOptions != nil) {
+                  let strictStartTime = argOptions!.contains("strictStartTime")
+                  let strictEndTime = argOptions!.contains("strictEndTime")
+                  if(strictStartTime && strictEndTime) {
+                      mutOptions = [.strictStartDate, .strictEndDate]
+                  }
+                  else if(strictEndTime != nil){
+                      mutOptions = [.strictEndDate]
+                  }
+                  else if(strictStartTime != nil){
+                      mutOptions = [.strictStartDate]
+                  }
+        }
+        let options = mutOptions
         let predicate = NSPredicate.samplesPredicate(
             startDate: Date.make(from: startTimestamp),
-            endDate: Date.make(from: endTimestamp)
+            endDate: Date.make(from: endTimestamp),
+            options: options
         )
         do {
             let query = try reporter.reader.workoutQuery(

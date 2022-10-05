@@ -12,16 +12,28 @@ import 'package:health_kit_reporter/health_kit_reporter.dart';
 class Predicate {
   const Predicate(
     this.startDate,
-    this.endDate,
-  );
+    this.endDate, {
+    this.options = const {
+      QueryOptions.strictEndDate,
+      QueryOptions.strictStartDate,
+    },
+  });
 
   final DateTime startDate;
   final DateTime endDate;
+  final Set<QueryOptions> options;
 
   /// General map representation
   ///
-  Map<String, int> get map => {
+  Map<String, Object> get map => {
         'startTimestamp': startDate.millisecondsSinceEpoch,
         'endTimestamp': endDate.millisecondsSinceEpoch,
+        'options': [...options.map((e) => e.name)]
       };
+}
+
+/// equivalent to: https://developer.apple.com/documentation/healthkit/hkqueryoptions
+enum QueryOptions {
+  strictStartDate,
+  strictEndDate,
 }
