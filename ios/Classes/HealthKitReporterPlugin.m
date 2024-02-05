@@ -12,4 +12,9 @@
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   [SwiftHealthKitReporterPlugin registerWithRegistrar:registrar];
 }
+
+- (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
+    [SwiftHealthKitReporterPlugin detachFromEngineForRegistrar:registrar];
+}
+
 @end

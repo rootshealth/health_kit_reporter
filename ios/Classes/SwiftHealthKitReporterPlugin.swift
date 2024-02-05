@@ -2,20 +2,27 @@ import Flutter
 import HealthKitReporter
 
 public class SwiftHealthKitReporterPlugin: NSObject, FlutterPlugin {
+    
     var reporter: HealthKitReporter?
-
+    
+    static var instance: SwiftHealthKitReporterPlugin?
+    
+    override init() {
+        super.init()
+        self.reporter = HealthKitReporter()
+    }
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let instance = SwiftHealthKitReporterPlugin()
-
-        instance.reporter = HealthKitReporter()
-
+        let instance = SwiftHealthKitReporterPlugin() // Create the instance
+        self.instance = instance // Assign to static property
+        
         let binaryMessenger = registrar.messenger()
         registerMethodChannel(
             registrar: registrar,
             binaryMessenger: binaryMessenger,
             instance: instance
         )
-
+        
         do {
             if let reporter = instance.reporter {
                 try registerEventChannel(
@@ -51,6 +58,20 @@ public class SwiftHealthKitReporterPlugin: NSObject, FlutterPlugin {
             )
             let streamHandler = try StreamHandlerFactory.make(with: reporter, for: event)
             eventChannel.setStreamHandler(streamHandler)
+        }
+    }
+    
+    @objc public static func detachFromEngineForRegistrar(_ registrar: FlutterPluginRegistrar) {
+        instance?.reporter?.observer.disableAllBackgroundDelivery { success, error in
+            if let error = error {
+                // Handle the error
+                print("Error disabling background delivery: \(error.localizedDescription)")
+            } else {
+                // Success
+                print("Successfully disabled all background delivery.")
+            }
+            instance?.reporter = nil
+            
         }
     }
 }

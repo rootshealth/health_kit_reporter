@@ -12,7 +12,7 @@ public final class StatisticsCollectionQueryStreamHandler: NSObject {
     public let reporter: HealthKitReporter
     public var activeQueries = Set<Query>()
     public var plannedQueries = Set<Query>()
-
+    
     init(reporter: HealthKitReporter) {
         self.reporter = reporter
     }
@@ -48,28 +48,28 @@ extension StatisticsCollectionQueryStreamHandler: StreamHandlerProtocol {
                     anchorDate: Date.make(from: anchorTimestamp),
                     enumerateFrom: Date.make(from: enumerateFrom),
                     enumerateTo: Date.make(from: enumerateTo),
-                    intervalComponents: DateComponents.make(
-                        from: intervalComponents
-                    ),
+                    intervalComponents: DateComponents.make(from: intervalComponents),
                     monitorUpdates: true
                 ) { (statistics, error) in
-                    guard
-                        error == nil,
-                        let statistics = statistics
-                    else {
-                        return
-                    }
-                    do {
-                        events(try statistics.encoded())
-                    } catch {
-                        events(nil)
+                    DispatchQueue.main.async {
+                        guard
+                            error == nil,
+                            let statistics = statistics
+                        else {
+                            return
+                        }
+                        do {
+                            events(try statistics.encoded())
+                        } catch {
+                            events(FlutterError(code: "ENCODING_ERROR", message: "Failed to encode statistics", details: nil))
+                        }
                     }
                 }
                 plannedQueries.insert(query)
             }
         }
     }
-
+    
     public static func make(with reporter: HealthKitReporter) -> StatisticsCollectionQueryStreamHandler {
         StatisticsCollectionQueryStreamHandler(reporter: reporter)
     }

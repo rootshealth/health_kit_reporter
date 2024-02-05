@@ -12,7 +12,7 @@ public final class ObserverQueryStreamHandler: NSObject {
     public let reporter: HealthKitReporter
     public var activeQueries = Set<Query>()
     public var plannedQueries = Set<Query>()
-
+    
     init(reporter: HealthKitReporter) {
         self.reporter = reporter
     }
@@ -46,14 +46,19 @@ extension ObserverQueryStreamHandler: StreamHandlerProtocol {
                     error == nil,
                     let identifier = identifier
                 else {
+                    DispatchQueue.main.async {
+                        events(FlutterError(code: "ERROR", message: "Error or no identifier in observer query", details: nil))
+                    }
                     return
                 }
-                events(["identifier": identifier])
+                DispatchQueue.main.async {
+                    events(["identifier": identifier])
+                }
             }
             plannedQueries.insert(query)
         }
     }
-
+    
     public static func make(with reporter: HealthKitReporter) -> ObserverQueryStreamHandler {
         ObserverQueryStreamHandler(reporter: reporter)
     }
