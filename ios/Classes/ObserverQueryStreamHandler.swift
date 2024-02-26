@@ -47,7 +47,7 @@ extension ObserverQueryStreamHandler: StreamHandlerProtocol {
                     let identifier = identifier
                 else {
                     DispatchQueue.main.async {
-                        events(FlutterError(code: "ERROR", message: "Error or no identifier in observer query", details: nil))
+                        events(FlutterError(code: "ERROR", message: "Error or no identifier in observer query", details: error?.localizedDescription ?? "No identifier"))
                     }
                     return
                 }
