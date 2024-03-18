@@ -46,8 +46,30 @@ extension ObserverQueryStreamHandler: StreamHandlerProtocol {
                     error == nil,
                     let identifier = identifier
                 else {
+                    
                     DispatchQueue.main.async {
-                        events(FlutterError(code: "ERROR", message: "Error or no identifier in observer query", details: error?.localizedDescription ?? "No identifier"))
+                        var errorDetails: [String: Any] = ["localizedDescription": error?.localizedDescription ?? "No description available"]
+                        
+                        var errorCode : String = "ERROR"
+                        
+                        // If the error is an NSError, add more details.
+                        if let nsError = error as NSError? {
+                            errorDetails["domain"] = nsError.domain
+                            errorDetails["code"] = nsError.code
+                            
+                            // Add user info dictionary, if you need to pass any specific details.
+                            errorDetails["userInfo"] = nsError.userInfo
+                            
+                            // Check for a specific error code and domain.
+                            if nsError.domain == "com.apple.healthkit" && nsError.code == 5 {
+                                errorCode = "errorAuthorizationNotDetermined"
+                            }
+                            
+                        }
+                        
+                        
+                        
+                        events(FlutterError(code: errorCode, message: "Error or no identifier in observer query", details: errorDetails))
                     }
                     return
                 }
